@@ -9,6 +9,8 @@
     <meta property="og:image" content="https://ralrogonplataforma-design.github.io/invitacion/preview.jpg">
     <meta property="og:url" content="https://ralrogonplataforma-design.github.io/invitacion/">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Great+Vibes&family=Montserrat:wght@300;400;600;700&display=swap');
@@ -30,6 +32,10 @@
 
         .cursive {
             font-family: 'Great Vibes', cursive;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
         }
 
         /* Animación del sobre */
@@ -286,6 +292,7 @@
     <div class="flower-decoration floating text-purple-300 text-9xl" style="bottom: 20%; right: 5%; animation-delay: 1.5s;">💕</div>
 
     <div id="app" class="relative z-10"></div>
+    <div id="modal-container"></div>
 
     <script>
         // Estado global
@@ -295,6 +302,8 @@
             qrType: null,
             showTicketGenerator: false,
             guestName: '',
+            guestNames: [''],
+            generatedTickets: [],
             currentSection: 'inicio'
         };
 
@@ -320,33 +329,50 @@
             },
             recepcion: {
                 nombre: "Colonia San Rafael",
-                direccion: "Calle Edison #181",
+                direccion: "Calle Edison #177",
                 referencia: "Casi esquina con Serapio Rendón",
                 colonia: "Colonia San Rafael",
                 ciudad: "Ciudad de México",
                 hora: "19:00 horas (después de la ceremonia)",
-                mapsUrl: "https://maps.google.com/?q=Calle+Edison+181+Colonia+San+Rafael+CDMX"
+                mapsUrl: "https://maps.google.com/?q=Calle+Edison+177+Colonia+San+Rafael+CDMX"
             },
             padres: {
                 nombres: "Catalina y Raúl"
-            }
+            },
+            timeline: [
+                { age: '0-3', title: 'Los Primeros Pasos', desc: 'Descubriendo el mundo con alegría y asombro', emoji: '👶' },
+                { age: '4-7', title: 'Años de Magia', desc: 'Curiosidad sin límites y sueños infinitos', emoji: '✨' },
+                { age: '8-10', title: 'Crecimiento', desc: 'Nuevas amistades y aventuras escolares', emoji: '🌱' },
+                { age: '11-12', title: 'Cambios', desc: 'Descubriendo quién eres y quién quieres ser', emoji: '🦋' },
+                { age: '13-14', title: 'Adolescencia', desc: 'Fortaleza, pasión y un corazón que crece', emoji: '💪' },
+                { age: '15', title: 'Quince Años', desc: '¡Tu día especial! El inicio de una nueva etapa', emoji: '👑' }
+            ]
         };
 
-        // Generar texto de fondo animado
+        // Generar texto de fondo animado (carácter a carácter como máquina de escribir)
         function generateBackgroundText() {
             const texts = ['XV AÑOS', 'SARAÍ', '15', 'MICHELLE', 'CELEBRACIÓN'];
             const container = document.getElementById('backgroundText');
+            container.innerHTML = '';
             
             texts.forEach((text, index) => {
                 const span = document.createElement('span');
-                span.textContent = text;
-                span.style.top = `${Math.random() * 80}%`;
+                span.style.top = `${Math.random() * 80 + 10}%`;
                 span.style.left = `-100%`;
-                span.className = 'typewriter';
-                span.style.animationDelay = `${index * 0.8}s`;
+                span.style.transform = `rotate(${Math.random() * 30 - 15}deg)`;
+                
+                let charIndex = 0;
+                const writeInterval = setInterval(() => {
+                    if (charIndex < text.length) {
+                        span.textContent += text.charAt(charIndex);
+                        charIndex++;
+                    } else {
+                        clearInterval(writeInterval);
+                    }
+                }, 100);
                 
                 setTimeout(() => {
-                    span.style.transition = 'left 4s ease-out';
+                    span.style.transition = 'left 5s ease-out';
                     span.style.left = `${Math.random() * 100}%`;
                 }, index * 800);
                 
@@ -385,14 +411,51 @@
             document.getElementById(elementId).appendChild(canvas);
         }
 
+        // Función de escritura máquina de escribir (carácter a carácter)
+        function typeText(elementId, text, speed, callback) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            let index = 0;
+            element.innerHTML = '<span class="typing-text"></span><span class="typing-cursor" style="display:inline-block;width:3px;height:1em;background:#ec4899;margin-left:2px;animation:blink 0.7s infinite;vertical-align:middle;"></span>';
+            const textSpan = element.querySelector('.typing-text');
+            
+            function type() {
+                if (index < text.length) {
+                    textSpan.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(type, speed);
+                } else {
+                    const cursor = element.querySelector('.typing-cursor');
+                    if (cursor) cursor.remove();
+                    if (callback) callback();
+                }
+            }
+            
+            type();
+        }
+
         // Abrir sobre
         function openEnvelope() {
             if (!state.opened) {
                 document.getElementById('envelope').classList.add('open');
                 setTimeout(() => {
                     state.opened = true;
+                    state._envelopeRendered = false;
                     render();
-                }, 1500);
+                    
+                    setTimeout(() => {
+                        typeText('frase-magica', eventData.quinceañera.frase, 20, () => {
+                            typeText('invitacion-label', '✦ Invitación Especial ✦', 80, () => {
+                                typeText('padres-nombres', eventData.padres.nombres.toUpperCase(), 60, () => {
+                                    typeText('nombre-principal', eventData.quinceañera.nombre.toUpperCase(), 70, () => {
+                                        typeText('apellido-principal', eventData.quinceañera.apellido.toUpperCase(), 70);
+                                    });
+                                });
+                            });
+                        });
+                    }, 300);
+                }, 1800);
             }
         }
 
@@ -406,106 +469,365 @@
 
 Ve todos los detalles aquí:
 https://ralrogonplataforma-design.github.io/invitacion/`;
-
             const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
+        }
+
+        function shareOnFacebook() {
+            const url = 'https://ralrogonplataforma-design.github.io/invitacion/';
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank', 'width=600,height=400');
+        }
+
+        function shareOnTwitter() {
+            const url = 'https://ralrogonplataforma-design.github.io/invitacion/';
+            const text = `¡Estoy invitado a los XV años de Saraí! 🎉💕 ${url}`;
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function renderTimeline() {
+            return `
+                <div class="qr-modal" onclick="if(event.target===this)closeModal()">
+                    <div class="qr-content max-w-2xl w-full" style="background:white;">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-3xl font-bold text-pink-600 flex items-center gap-2">📖 Mi Viaje</h3>
+                            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl">×</button>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:12px;">
+                            ${eventData.timeline.map(stage => `
+                                <div style="position:relative;padding-left:48px;padding-bottom:12px;">
+                                    <div style="position:absolute;left:18px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,#ec4899,#a855f7);"></div>
+                                    <div style="position:absolute;left:11px;top:4px;width:16px;height:16px;background:#ec4899;border-radius:50%;border:3px solid white;box-shadow:0 0 0 2px #ec4899;"></div>
+                                    <div style="background:linear-gradient(135deg,#fdf2f8,#f5f3ff);border-radius:12px;padding:16px;border:1px solid #fbcfe8;">
+                                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                                            <span style="font-size:1.8rem;">${stage.emoji}</span>
+                                            <div>
+                                                <p style="color:#ec4899;font-weight:bold;font-size:0.8rem;">${stage.age} años</p>
+                                                <h4 style="color:#1f2937;font-weight:bold;font-size:1.1rem;">${stage.title}</h4>
+                                            </div>
+                                        </div>
+                                        <p style="color:#6b7280;font-size:0.875rem;padding-left:48px;">${stage.desc}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button onclick="closeModal()" 
+                                class="w-full mt-6 elegant-button text-white font-bold py-4 rounded-2xl transition">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            `;
         }
 
         // Mostrar QR
         function showQR(type) {
             state.showQR = true;
+            state.showTimeline = false;
+            state.showTicketGenerator = false;
             state.qrType = type;
             render();
-            
-            setTimeout(() => {
-                if (type === 'parroquia') {
-                    generateQRCode(eventData.ceremonia.mapsUrl, 'qrCode');
-                } else if (type === 'recepcion') {
-                    generateQRCode(eventData.recepcion.mapsUrl, 'qrCode');
-                }
-            }, 100);
         }
 
         // Cerrar modal
         function closeModal() {
             state.showQR = false;
             state.showTicketGenerator = false;
+            state.showTimeline = false;
+            state.generatedTickets = [];
+            state.guestNames = [''];
+            document.getElementById('modal-container').innerHTML = '';
+        }
+
+        // Toggle ticket generator
+        function toggleTicket() {
+            state.showTicketGenerator = true;
+            state.showQR = false;
+            state.showTimeline = false;
+            state.generatedTickets = [];
+            state.guestNames = [''];
             render();
+        }
+
+        // Toggle timeline
+        function toggleTimeline() {
+            state.showTimeline = !state.showTimeline;
+            state.showQR = false;
+            state.showTicketGenerator = false;
+            render();
+        }
+
+        function addGuestName() {
+            state.guestNames.push('');
+            document.getElementById('modal-container').innerHTML = renderTicketForm();
+        }
+
+        function removeGuestName(index) {
+            if (state.guestNames.length > 1) {
+                state.guestNames.splice(index, 1);
+                document.getElementById('modal-container').innerHTML = renderTicketForm();
+            }
+        }
+
+        function updateGuestName(index, value) {
+            state.guestNames[index] = value;
+        }
+
+        function generateTicketNumber() {
+            return `XV-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+        }
+
+        function generateTickets() {
+            const validNames = state.guestNames.filter(name => name.trim() !== '');
+            if (validNames.length === 0) {
+                alert('Por favor ingresa al menos un nombre');
+                return;
+            }
+            state.generatedTickets = validNames.map(name => ({
+                name: name.trim().toUpperCase(),
+                number: generateTicketNumber(),
+                date: '21 de Marzo',
+                year: '2025',
+                time: '17:00 hrs',
+                location: eventData.ceremonia.nombre,
+                address: eventData.ceremonia.direccion,
+                city: eventData.ceremonia.ciudad,
+                code: Math.random().toString(36).substring(2, 11).toUpperCase()
+            }));
+            document.getElementById('modal-container').innerHTML = renderTicketForm();
+        }
+
+        async function downloadTicketsPDF() {
+            const element = document.getElementById('tickets-container');
+            const opt = {
+                margin: 10,
+                filename: 'boletos-xv-sarai.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+            };
+            await html2pdf().set(opt).from(element).save();
+        }
+
+        async function downloadTicketsImage() {
+            const element = document.getElementById('tickets-container');
+            const canvas = await html2canvas(element, { backgroundColor: '#ffffff', scale: 2 });
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'boletos-xv-sarai.png';
+            link.click();
+        }
+
+        function shareTicketWhatsApp() {
+            const url = 'https://ralrogonplataforma-design.github.io/invitacion/';
+            const text = `¡Estás invitado a los XV años de Saraí! 🎉💕\n\n🌟 Saraí Michelle\n📅 21 de Marzo, 2025\n⛪ 17:00 horas\n\nVe todos los detalles aquí:\n${url}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function renderTicketForm() {
+            if (state.generatedTickets.length === 0) {
+                return `
+                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;" onclick="if(event.target===this)closeModal()">
+                        <div style="background:white;padding:30px;border-radius:20px;max-width:90%;max-height:90%;overflow-y:auto;width:450px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                                <h3 style="font-size:1.5rem;font-weight:bold;color:#be185d;">🎫 Generar Boletos</h3>
+                                <button onclick="closeModal()" style="font-size:1.5rem;color:#9ca3af;cursor:pointer;">×</button>
+                            </div>
+                            <div style="background:linear-gradient(135deg,#fdf2f8,#f5f3ff);border-radius:12px;padding:20px;border:2px solid #fbcfe8;">
+                                <p style="color:#6b7280;margin-bottom:16px;text-align:center;">Ingresa los nombres de tus invitados:</p>
+                                <div id="guestInputs" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+                                    ${state.guestNames.map((name, index) => `
+                                        <div style="display:flex;gap:8px;">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Nombre completo ${index + 1}"
+                                                value="${name}"
+                                                oninput="updateGuestName(${index}, this.value)"
+                                                style="flex:1;padding:12px 16px;border-radius:10px;border:2px solid #f9a8d4;font-size:1rem;outline:none;"
+                                            />
+                                            ${state.guestNames.length > 1 ? `
+                                                <button onclick="removeGuestName(${index})" style="padding:12px;background:#dc2626;color:white;border:none;border-radius:10px;cursor:pointer;font-size:1rem;">×</button>
+                                            ` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <button onclick="addGuestName()" style="width:100%;margin-bottom:12px;background:#f3f4f6;border:none;color:#374151;font-weight:bold;padding:12px;border-radius:10px;cursor:pointer;">+ Agregar otro nombre</button>
+                                <button onclick="generateTickets()" style="width:100%;background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:white;font-weight:bold;padding:14px;border-radius:12px;font-size:1rem;cursor:pointer;">✨ Generar Boletos</button>
+                            </div>
+                            <button onclick="closeModal()" style="width:100%;margin-top:16px;background:#f3f4f6;border:none;color:#374151;font-weight:bold;padding:14px;border-radius:12px;cursor:pointer;">Cerrar</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:flex-start;justify-content:center;z-index:1000;overflow-y:auto;padding:20px 0;" onclick="if(event.target===this)closeModal()">
+                        <div style="background:white;padding:30px;border-radius:20px;max-width:90%;width:600px;margin:20px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                                <h3 style="font-size:1.5rem;font-weight:bold;color:#be185d;">🎫 Tus Boletos VIP</h3>
+                                <button onclick="closeModal()" style="font-size:1.5rem;color:#9ca3af;cursor:pointer;">×</button>
+                            </div>
+                            <div id="tickets-container" style="display:flex;flex-direction:column;gap:20px;">
+                                ${state.generatedTickets.map(ticket => `
+                                    <div style="background:linear-gradient(135deg,#7c3aed,#be185d);border-radius:20px;padding:30px;color:white;box-shadow:0 10px 30px rgba(190,24,93,0.3);">
+                                        <div style="text-align:center;border-bottom:1px solid rgba(255,255,255,0.3);padding-bottom:20px;margin-bottom:20px;">
+                                            <p style="font-size:0.75rem;letter-spacing:0.3em;text-transform:uppercase;opacity:0.8;margin-bottom:8px;">✨ XV AÑOS VIP EXPERIENCE ✨</p>
+                                            <h2 style="font-size:2.5rem;font-weight:900;margin-bottom:4px;">SARAÍ</h2>
+                                            <p style="opacity:0.7;font-size:0.875rem;">Celebración XV Años</p>
+                                        </div>
+                                        <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.1);border-radius:12px;margin-bottom:20px;">
+                                            <p style="font-size:0.75rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Invitado VIP</p>
+                                            <p style="font-size:2rem;font-weight:900;">${ticket.name}</p>
+                                            <p style="margin-top:8px;">⭐ ⭐ ⭐</p>
+                                        </div>
+                                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+                                            <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:10px;text-align:center;">
+                                                <p style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;margin-bottom:4px;">Boleto #</p>
+                                                <p style="font-family:monospace;font-size:0.65rem;font-weight:bold;word-break:break-all;">${ticket.number}</p>
+                                            </div>
+                                            <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:10px;text-align:center;">
+                                                <p style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;margin-bottom:4px;">Fecha</p>
+                                                <p style="font-weight:bold;">21/MAR</p>
+                                            </div>
+                                            <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:10px;text-align:center;">
+                                                <p style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;margin-bottom:4px;">Hora</p>
+                                                <p style="font-weight:bold;">17:00</p>
+                                            </div>
+                                            <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:10px;text-align:center;">
+                                                <p style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;margin-bottom:4px;">Tipo</p>
+                                                <p style="font-weight:bold;">VIP</p>
+                                            </div>
+                                        </div>
+                                        <div style="text-align:center;padding:12px;background:rgba(255,255,255,0.1);border-radius:10px;margin-bottom:12px;">
+                                            <p style="font-size:0.75rem;opacity:0.7;margin-bottom:4px;">📍 ${ticket.location}</p>
+                                            <p style="font-size:0.75rem;opacity:0.6;">${ticket.city}</p>
+                                        </div>
+                                        <div style="text-align:center;">
+                                            <p style="font-size:0.75rem;opacity:0.6;font-family:monospace;">${ticket.code}</p>
+                                            <p style="margin-top:8px;font-size:0.875rem;opacity:0.9;">✦ ¡GRACIAS POR CELEBRAR CONMIGO! ✦</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;">
+                                <button onclick="downloadTicketsPDF()" style="background:linear-gradient(135deg,#dc2626,#b91c1c);border:none;color:white;font-weight:bold;padding:12px;border-radius:12px;cursor:pointer;font-size:0.9rem;">📄 Descargar PDF</button>
+                                <button onclick="downloadTicketsImage()" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;color:white;font-weight:bold;padding:12px;border-radius:12px;cursor:pointer;font-size:0.9rem;">🖼️ Descargar Imagen</button>
+                                <button onclick="shareTicketWhatsApp()" style="background:linear-gradient(135deg,#16a34a,#15803d);border:none;color:white;font-weight:bold;padding:12px;border-radius:12px;cursor:pointer;font-size:0.9rem;">💬 WhatsApp</button>
+                                <button onclick="shareOnFacebook()" style="background:linear-gradient(135deg,#1d4ed8,#1e3a8a);border:none;color:white;font-weight:bold;padding:12px;border-radius:12px;cursor:pointer;font-size:0.9rem;">📘 Facebook</button>
+                                <button onclick="shareOnTwitter()" style="background:linear-gradient(135deg,#0284c7,#0369a1);border:none;color:white;font-weight:bold;padding:12px;border-radius:12px;cursor:pointer;font-size:0.9rem;">𝕏 Twitter</button>
+                                <button onclick="window.print()" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:white;font-weight:bold;padding:12px;border-radius:12px;cursor:pointer;font-size:0.9rem;">🖨️ Imprimir</button>
+                            </div>
+                            <button onclick="state.generatedTickets=[];state.guestNames=[''];document.getElementById('modal-container').innerHTML=renderTicketForm();" style="width:100%;margin-top:10px;background:#f3f4f6;border:none;color:#374151;font-weight:bold;padding:14px;border-radius:12px;cursor:pointer;">➕ Generar Nuevo</button>
+                            <button onclick="closeModal()" style="width:100%;margin-top:8px;background:#f3f4f6;border:none;color:#374151;font-weight:bold;padding:14px;border-radius:12px;cursor:pointer;">Cerrar</button>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         // Cambiar sección
         function changeSection(section) {
             state.currentSection = section;
-            render();
+            // Update only the section container
+            const sectionEl = document.getElementById('section-content');
+            if (sectionEl) sectionEl.innerHTML = renderSection();
+            // Update button active states
+            ['ceremonia','recepcion','viaje'].forEach(s => {
+                const btn = document.getElementById('btn-' + s);
+                if (btn) {
+                    if (s === section) btn.classList.add('ring-4','ring-pink-300');
+                    else btn.classList.remove('ring-4','ring-pink-300');
+                }
+            });
         }
 
         // Render principal
         function render() {
             const app = document.getElementById('app');
-            
+            const modalContainer = document.getElementById('modal-container');
+
             if (!state.opened) {
-                app.innerHTML = `
-                    <div class="min-h-screen flex flex-col items-center justify-center p-4">
-                        <div class="text-center mb-12 animate-fadeIn">
-                            <h1 class="text-5xl md:text-7xl font-bold text-pink-600 mb-4 cursive">
-                                XV Años
-                            </h1>
-                            <p class="text-xl md:text-2xl text-gray-600">
-                                Toca el sobre para abrir tu invitación
-                            </p>
+                if (!state._envelopeRendered) {
+                    state._envelopeRendered = true;
+                    app.innerHTML = `
+                        <div class="min-h-screen flex flex-col items-center justify-center p-4">
+                            <div class="text-center mb-12 animate-fadeIn">
+                                <h1 id="titulo-principal" class="text-5xl md:text-7xl font-bold text-pink-600 mb-4 cursive min-h-[80px]"></h1>
+                                <p id="subtitulo" class="text-xl md:text-2xl text-gray-600 min-h-[40px]"></p>
+                            </div>
+                            <div class="envelope" id="envelope" onclick="openEnvelope()">
+                                <div class="envelope-back"></div>
+                                <div class="envelope-front"></div>
+                                <div class="envelope-top"></div>
+                                <div class="seal">🌹</div>
+                                <div class="letter"></div>
+                            </div>
+                            <div class="mt-12 text-center max-w-2xl animate-slideUp" style="animation-delay: 0.5s;">
+                                <p id="mensaje-inicial" class="text-gray-500 text-lg italic leading-relaxed font-light min-h-[80px]"></p>
+                            </div>
                         </div>
-                        
-                        <div class="envelope" id="envelope" onclick="openEnvelope()">
-                            <div class="envelope-back"></div>
-                            <div class="envelope-front"></div>
-                            <div class="envelope-top"></div>
-                            <div class="seal">🌹</div>
-                            <div class="letter"></div>
-                        </div>
-                    </div>
-                `;
-            } else {
+                    `;
+                    setTimeout(() => {
+                        typeText('titulo-principal', 'XV Años', 100, () => {
+                            typeText('subtitulo', 'Toca el sobre para abrir tu invitación', 50, () => {
+                                typeText('mensaje-inicial', '"Un día especial, un momento mágico, donde celebramos toda una vida de crecimiento, sueños y promesas por cumplir."', 25);
+                            });
+                        });
+                    }, 400);
+                }
+            } else if (!state._contentRendered) {
+                state._contentRendered = true;
                 app.innerHTML = `
                     <div class="min-h-screen py-12 px-4">
                         <div class="max-w-4xl mx-auto">
                             ${renderContent()}
                         </div>
                     </div>
-
-                    ${state.showQR ? renderQRModal() : ''}
                 `;
+            }
+
+            // Modales en contenedor separado — no tocan el DOM del contenido principal
+            if (state.showTimeline) {
+                modalContainer.innerHTML = renderTimeline();
+            } else if (state.showQR) {
+                modalContainer.innerHTML = renderQRModal();
+                setTimeout(() => {
+                    const url = state.qrType === 'parroquia' ?
+                        eventData.ceremonia.mapsUrl : eventData.recepcion.mapsUrl;
+                    generateQRCode(url, 'qrCode');
+                }, 100);
+            } else if (state.showTicketGenerator) {
+                modalContainer.innerHTML = renderTicketForm();
+            } else {
+                modalContainer.innerHTML = '';
             }
         }
 
         // Renderizar contenido principal
         function renderContent() {
             return `
+                <div class="bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-200 rounded-3xl shadow-xl p-8 md:p-12 mb-8 animate-fadeIn">
+                    <p id="frase-magica" class="text-center text-gray-700 text-xl leading-relaxed font-light italic min-h-[100px]"></p>
+                </div>
+
                 <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 mb-8 animate-fadeIn">
                     <div class="text-center mb-8">
                         <div class="w-48 h-48 mx-auto mb-6 rounded-full overflow-hidden border-8 border-pink-200 shadow-xl">
                             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ec4899;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23a855f7;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='200' height='200' fill='url(%23grad)'/%3E%3Ctext x='100' y='120' font-size='100' text-anchor='middle' fill='white' font-family='serif'%3E👸%3C/text%3E%3C/svg%3E" 
                                  alt="Quinceañera" class="w-full h-full object-cover">
                         </div>
+
+                        <p id="invitacion-label" class="text-sm tracking-[0.3em] text-pink-400 uppercase font-light mb-2 min-h-[20px]"></p>
+                        <p id="padres-nombres" class="text-xl text-gray-500 font-light tracking-wider mb-4 min-h-[30px]"></p>
                         
-                        <div class="typewriter-container mb-4">
-                            <h2 class="text-6xl md:text-8xl font-bold text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 bg-clip-text cursive typewriter">
-                                ${eventData.quinceañera.nombre}
-                            </h2>
+                        <div class="mb-4">
+                            <h2 id="nombre-principal" class="text-5xl md:text-6xl font-bold text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 bg-clip-text cursive min-h-[80px]"></h2>
                         </div>
                         
-                        <div class="typewriter-container mb-6">
-                            <h3 class="text-3xl md:text-5xl text-gray-700 font-light typewriter" style="animation-delay: 1s;">
-                                ${eventData.quinceañera.apellido}
-                            </h3>
+                        <div class="mb-6">
+                            <h3 id="apellido-principal" class="text-3xl md:text-4xl text-gray-700 font-light min-h-[50px]"></h3>
                         </div>
                         
                         <div class="text-7xl mb-4">👑</div>
-                        
                         <p class="text-xl text-pink-600 font-semibold mb-2">${eventData.quinceañera.edad} Años</p>
-                        
-                        <p class="text-gray-600 italic max-w-2xl mx-auto leading-relaxed">
-                            ${eventData.quinceañera.frase}
-                        </p>
                     </div>
                 </div>
 
@@ -517,43 +839,49 @@ https://ralrogonplataforma-design.github.io/invitacion/`;
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-4 mb-8 animate-slideUp">
-                    <button onclick="changeSection('ceremonia')" 
-                            class="elegant-button text-white font-bold py-4 px-6 rounded-2xl transition transform hover:scale-105 ${state.currentSection === 'ceremonia' ? 'ring-4 ring-pink-300' : ''}">
-                        <div class="text-3xl mb-2">⛪</div>
-                        <div class="text-sm">Ceremonia</div>
+                <div class="grid grid-cols-4 gap-3 mb-8 animate-slideUp">
+                    <button id="btn-viaje" onclick="toggleTimeline()" 
+                            class="elegant-button text-white font-bold py-4 px-3 rounded-2xl transition transform hover:scale-105">
+                        <div class="text-2xl mb-1">📖</div>
+                        <div class="text-xs">Mi Viaje</div>
                     </button>
-                    
-                    <button onclick="changeSection('recepcion')" 
-                            class="elegant-button text-white font-bold py-4 px-6 rounded-2xl transition transform hover:scale-105 ${state.currentSection === 'recepcion' ? 'ring-4 ring-pink-300' : ''}">
-                        <div class="text-3xl mb-2">🎉</div>
-                        <div class="text-sm">Recepción</div>
+                    <button id="btn-ceremonia" onclick="changeSection('ceremonia')" 
+                            class="elegant-button text-white font-bold py-4 px-3 rounded-2xl transition transform hover:scale-105 ${state.currentSection === 'ceremonia' ? 'ring-4 ring-pink-300' : ''}">
+                        <div class="text-2xl mb-1">⛪</div>
+                        <div class="text-xs">Ceremonia</div>
                     </button>
-                    
-                    <button onclick="changeSection('boleto')" 
-                            class="elegant-button text-white font-bold py-4 px-6 rounded-2xl transition transform hover:scale-105 ${state.currentSection === 'boleto' ? 'ring-4 ring-pink-300' : ''}">
-                        <div class="text-3xl mb-2">🎫</div>
-                        <div class="text-sm">Mi Boleto</div>
+                    <button id="btn-recepcion" onclick="changeSection('recepcion')" 
+                            class="elegant-button text-white font-bold py-4 px-3 rounded-2xl transition transform hover:scale-105 ${state.currentSection === 'recepcion' ? 'ring-4 ring-pink-300' : ''}">
+                        <div class="text-2xl mb-1">🎉</div>
+                        <div class="text-xs">Recepción</div>
+                    </button>
+                    <button onclick="toggleTicket()" 
+                            class="elegant-button text-white font-bold py-4 px-3 rounded-2xl transition transform hover:scale-105">
+                        <div class="text-2xl mb-1">🎫</div>
+                        <div class="text-xs">Boletos</div>
                     </button>
                 </div>
 
-                ${renderSection()}
-
-                <div class="text-center mt-12 animate-fadeIn">
-                    <button onclick="shareWhatsApp()" 
-                            class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-8 rounded-2xl transition transform hover:scale-105 inline-flex items-center gap-3 shadow-xl">
-                        <span class="text-2xl">💬</span>
-                        <span>Compartir por WhatsApp</span>
-                    </button>
-                </div>
+                <div id="section-content">${renderSection()}</div>
 
                 <div class="bg-gradient-to-br from-pink-100 to-purple-100 rounded-3xl p-8 mt-8 text-center animate-fadeIn">
-                    <p class="text-2xl text-gray-700 mb-4">
-                        ¡Nos encantaría contar contigo! 💕
-                    </p>
-                    <p class="text-gray-600">
-                        Por favor confirma tu asistencia
-                    </p>
+                    <p class="text-xl text-gray-700 mb-2 font-semibold">Con amor y alegría te esperamos 💕</p>
+                    <p class="text-gray-600 mb-6">Por favor confirma tu asistencia</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button onclick="shareWhatsApp()" 
+                                class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-2xl transition transform hover:scale-105 flex items-center justify-center gap-2 shadow-xl">
+                            <span class="text-xl">💬</span><span>WhatsApp</span>
+                        </button>
+                        <button onclick="shareOnFacebook()" 
+                                class="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white font-bold py-4 px-6 rounded-2xl transition transform hover:scale-105 flex items-center justify-center gap-2 shadow-xl">
+                            <span class="text-xl">📘</span><span>Facebook</span>
+                        </button>
+                        <button onclick="shareOnTwitter()" 
+                                class="bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-bold py-4 px-6 rounded-2xl transition transform hover:scale-105 flex items-center justify-center gap-2 shadow-xl">
+                            <span class="text-xl">𝕏</span><span>Twitter</span>
+                        </button>
+                    </div>
+                    <div class="text-5xl space-x-3 mt-6">🎉 💕 🎊</div>
                 </div>
             `;
         }
@@ -654,36 +982,9 @@ https://ralrogonplataforma-design.github.io/invitacion/`;
             } else if (state.currentSection === 'boleto') {
                 return `
                     <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 animate-slideUp">
-                        <h3 class="text-4xl font-bold text-center text-pink-600 mb-8 flex items-center justify-center gap-3">
-                            <span>🎫</span>
-                            <span>Mi Boleto VIP</span>
-                        </h3>
-                        
-                        <div class="space-y-6">
-                            <div class="bg-gradient-to-br from-pink-100 to-purple-100 rounded-2xl p-8 text-center">
-                                <div class="text-6xl mb-4">✨</div>
-                                <h4 class="text-2xl font-bold text-gray-800 mb-3">
-                                    Genera tu Boleto Personal
-                                </h4>
-                                <p class="text-gray-600 mb-6">
-                                    Descarga tu boleto VIP para el evento
-                                </p>
-                                
-                                <input 
-                                    type="text" 
-                                    id="guestName"
-                                    placeholder="Escribe tu nombre completo"
-                                    class="w-full px-6 py-4 rounded-xl border-2 border-pink-300 focus:border-pink-500 focus:outline-none text-center text-lg mb-4"
-                                    value="${state.guestName}"
-                                    oninput="state.guestName = this.value"
-                                />
-                                
-                                <button 
-                                    onclick="if(state.guestName.trim()) { alert('Función de generación de boletos próximamente disponible'); } else { alert('Por favor ingresa tu nombre'); }"
-                                    class="w-full elegant-button text-white font-bold py-4 px-6 rounded-2xl transition transform hover:scale-105">
-                                    Generar Mi Boleto
-                                </button>
-                            </div>
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">🎫</div>
+                            <p class="text-gray-600 text-lg">Haz clic en el botón <strong>Boletos</strong> para generar tu boleto VIP personalizado.</p>
                         </div>
                     </div>
                 `;
