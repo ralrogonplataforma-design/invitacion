@@ -8,6 +8,14 @@
     <meta property="og:description" content="Te invito a celebrar mis XV años">
     <meta property="og:image" content="https://ralrogonplataforma-design.github.io/invitacion/preview.jpg">
     <meta property="og:url" content="https://ralrogonplataforma-design.github.io/invitacion/">
+    <!-- PWA -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIlhWIEHDsW9zIFNhcmHDrSBNaWNoZWxsZSIsICJzaG9ydF9uYW1lIjogIlhWIFNhcmHDrSIsICJkZXNjcmlwdGlvbiI6ICJJbnZpdGFjacOzbiBpbnRlcmFjdGl2YSBhIGxvcyBYViBhw7FvcyBkZSBTYXJhw60gTWljaGVsbGUg4oCUIDIxIGRlIE1hcnpvIDIwMjYiLCAic3RhcnRfdXJsIjogIi4vaW5kZXguaHRtbCIsICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLCAib3JpZW50YXRpb24iOiAicG9ydHJhaXQiLCAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmRmMmY4IiwgInRoZW1lX2NvbG9yIjogIiNlYzQ4OTkiLCAibGFuZyI6ICJlcyIsICJjYXRlZ29yaWVzIjogWyJsaWZlc3R5bGUiLCAic29jaWFsIl0sICJpY29ucyI6IFt7InNyYyI6ICJpY29uLTE5Mi5zdmciLCAic2l6ZXMiOiAiMTkyeDE5MiIsICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiLCAicHVycG9zZSI6ICJhbnkgbWFza2FibGUifSwgeyJzcmMiOiAiaWNvbi01MTIuc3ZnIiwgInNpemVzIjogIjUxMng1MTIiLCAidHlwZSI6ICJpbWFnZS9zdmcreG1sIiwgInB1cnBvc2UiOiAiYW55IG1hc2thYmxlIn1dfQ==">
+    <meta name="theme-color" content="#ec4899">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="XV Saraí">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojZWM0ODk5Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2JlMTg1ZCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0MCIgZmlsbD0idXJsKCNnKSIvPgogIDx0ZXh0IHg9Ijk2IiB5PSIxMTUiIGZvbnQtc2l6ZT0iOTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIiBmb250LWZhbWlseT0ic2VyaWYiPvCfjLk8L3RleHQ+CiAgPHRleHQgeD0iOTYiIHk9IjE1OCIgZm9udC1zaXplPSIxOCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjkpIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiPlhWPC90ZXh0Pgo8L3N2Zz4=">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -314,15 +322,17 @@
         }
         .stage-overlay-inner {
             position: relative;
-            width: min(480px, 92vw);
+            width: min(440px, 92vw);
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 0 60px 20px rgba(255,0,170,0.4);
         }
         .stage-overlay-inner img {
             width: 100%;
-            height: 340px;
-            object-fit: cover;
+            height: auto;
+            max-height: 80vh;
+            object-fit: contain;
+            object-position: center top;
             display: block;
             filter: brightness(0.35) saturate(0.6);
         }
@@ -335,6 +345,7 @@
             justify-content: center;
             padding: 28px;
             text-align: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 40%, rgba(0,0,0,0.65) 100%);
         }
         .stage-overlay-quote {
             color: white;
@@ -1408,6 +1419,103 @@ https://ralrogonplataforma-design.github.io/invitacion/`;
             render();
             checkSavedAlert();
         };
+    </script>
+
+    <script>
+        // Inline Service Worker via Blob URL — no external files needed
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', async () => {
+                try {
+                    const swCode = `
+const CACHE_NAME = 'xv-sarai-v1';
+
+self.addEventListener('install', event => {
+    self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.add(self.location.href))
+    );
+});
+
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+        )
+    );
+    self.clients.claim();
+});
+
+self.addEventListener('fetch', event => {
+    if (event.request.method !== 'GET') return;
+    event.respondWith(
+        caches.match(event.request).then(cached => {
+            if (cached) return cached;
+            return fetch(event.request).then(response => {
+                if (response && response.status === 200) {
+                    const url = event.request.url;
+                    if (url.includes('cdn.tailwindcss.com') ||
+                        url.includes('fonts.googleapis.com') ||
+                        url.includes('fonts.gstatic.com') ||
+                        url.includes('cdnjs.cloudflare.com')) {
+                        caches.open(CACHE_NAME).then(c => c.put(event.request, response.clone()));
+                    }
+                }
+                return response;
+            }).catch(() => caches.match(self.location.href));
+        })
+    );
+});
+
+self.addEventListener('push', event => {
+    const data = event.data ? event.data.json() : {};
+    event.waitUntil(self.registration.showNotification(
+        data.title || '🎉 XV Años de Saraí Michelle',
+        {
+            body: data.body || '¡El evento es hoy a las 17:00! No olvides prepararte 💕',
+            icon: data.icon || '',
+            vibrate: [200, 100, 200],
+            actions: [
+                { action: 'open', title: 'Ver Invitación 💌' },
+                { action: 'dismiss', title: 'Cerrar' }
+            ]
+        }
+    ));
+});
+
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    if (event.action === 'dismiss') return;
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(wins => {
+            const existing = wins.find(w => w.focused || w.url);
+            if (existing) return existing.focus();
+            return clients.openWindow(self.location.href);
+        })
+    );
+});
+
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SCHEDULE_ALERT') {
+        const { delay, title, body } = event.data;
+        setTimeout(() => {
+            self.registration.showNotification(title || '🎉 XV Años de Saraí Michelle', {
+                body: body || '¡El evento se acerca! 💕',
+                vibrate: [200, 100, 200]
+            });
+        }, delay);
+    }
+});
+`;
+                    const blob = new Blob([swCode], { type: 'application/javascript' });
+                    const swUrl = URL.createObjectURL(blob);
+                    const reg = await navigator.serviceWorker.register(swUrl, { scope: './' });
+                    console.log('✅ SW (inline) registered');
+                    // Send icon b64 to SW if needed
+                } catch(e) {
+                    console.log('SW not available:', e.message);
+                }
+            });
+        }
     </script>
 </body>
 </html>
