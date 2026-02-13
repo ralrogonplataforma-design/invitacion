@@ -21,7 +21,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Great+Vibes&family=Montserrat:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Great+Vibes&family=Montserrat:wght@300;400;600;700&family=Mango+Salsa&family=Roboto:wght@300;400;500;700&display=swap');
 
         * {
             margin: 0;
@@ -40,6 +40,13 @@
 
         .cursive {
             font-family: 'Great Vibes', cursive;
+        }
+
+        .mango-name {
+            font-family: 'Mango Salsa', cursive;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            text-transform: lowercase;
         }
 
         @keyframes blink {
@@ -695,9 +702,51 @@
             50%      { box-shadow: 0 4px 40px rgba(236,72,153,0.9), 0 0 0 8px rgba(236,72,153,0.1); }
         }
 
+        /* Control de Audio */
+        .audio-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4);
+            transition: all 0.3s ease;
+        }
+        .audio-control:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(236, 72, 153, 0.6);
+        }
+        .audio-control.playing {
+            animation: pulse-audio 2s ease-in-out infinite;
+        }
+        @keyframes pulse-audio {
+            0%, 100% { box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4); }
+            50% { box-shadow: 0 8px 35px rgba(236, 72, 153, 0.8); }
+        }
+
     </style>
 </head>
 <body class="bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 min-h-screen">
+    <!-- Audio de fondo - Passionfruit by Drake -->
+    <audio id="bgMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- Control de audio -->
+    <button id="audioControl" class="audio-control" onclick="toggleAudio()">
+        🎵
+    </button>
+
     <!-- Texto de fondo animado -->
     <div class="background-text" id="backgroundText"></div>
 
@@ -749,7 +798,7 @@
                 referencia: "Casi esquina con Serapio Rendón",
                 colonia: "Colonia San Rafael",
                 ciudad: "Ciudad de México",
-                hora: "18:30 horas (después de la ceremonia)",
+                hora: "Después de la misa",
                 mapsUrl: "https://maps.google.com/?q=Calle+Edison+177+Colonia+San+Rafael+CDMX"
             },
             padres: {
@@ -1297,7 +1346,7 @@ https://ralrogonplataforma-design.github.io/invitacion/`;
                         <p id="padres-nombres" class="text-xl text-gray-500 font-light tracking-wider mb-4 min-h-[30px]"></p>
                         
                         <div class="mb-4">
-                            <h2 id="nombre-principal" class="text-5xl md:text-6xl font-bold text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 bg-clip-text cursive min-h-[80px]"></h2>
+                            <h2 id="nombre-principal" class="text-5xl md:text-6xl font-bold text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 bg-clip-text mango-name min-h-[80px]"></h2>
                         </div>
                         
                         <div class="mb-6">
@@ -1361,6 +1410,19 @@ https://ralrogonplataforma-design.github.io/invitacion/`;
                 <div class="bg-gradient-to-br from-pink-100 to-purple-100 rounded-3xl p-8 mt-8 text-center animate-fadeIn">
                     <p class="text-xl text-gray-700 mb-2 font-semibold">Con amor y alegría te esperamos 💕</p>
                     <p class="text-gray-600 mb-6">Por favor confirma tu asistencia</p>
+                    
+                    <!-- Botón de Confirmación Principal -->
+                    <div class="mb-6">
+                        <button onclick="mostrarConfirmacion()" 
+                                class="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 hover:from-pink-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold py-5 px-8 rounded-2xl transition transform hover:scale-105 flex items-center justify-center gap-3 shadow-2xl text-lg"
+                                style="animation: pulse-pink 2s ease-in-out infinite;">
+                            <span class="text-2xl">✅</span>
+                            <span>Confirmar Asistencia</span>
+                        </button>
+                    </div>
+
+                    <p class="text-sm text-gray-500 mb-4 text-center">También puedes compartir la invitación:</p>
+                    
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <button onclick="shareWhatsApp()" 
                                 class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-6 rounded-2xl transition transform hover:scale-105 flex items-center justify-center gap-2 shadow-xl">
@@ -1828,6 +1890,328 @@ https://ralrogonplataforma-design.github.io/invitacion/`;
                     }
                 }
             } catch(e) {}
+        }
+
+        // ════════════════════════════════════════════════════════════
+        // SISTEMA DE AUDIO
+        // ════════════════════════════════════════════════════════════
+        let audioPlaying = false;
+        const bgMusic = document.getElementById('bgMusic');
+        const audioControl = document.getElementById('audioControl');
+
+        function toggleAudio() {
+            if (audioPlaying) {
+                bgMusic.pause();
+                audioControl.textContent = '🎵';
+                audioControl.classList.remove('playing');
+                audioPlaying = false;
+            } else {
+                bgMusic.play().catch(e => console.log('Audio play failed:', e));
+                audioControl.textContent = '🔊';
+                audioControl.classList.add('playing');
+                audioPlaying = true;
+            }
+        }
+
+        // Intentar reproducir automáticamente al primer clic
+        document.addEventListener('click', function initAudio() {
+            if (!audioPlaying) {
+                bgMusic.play().catch(e => console.log('Audio autoplay prevented'));
+                audioControl.textContent = '🔊';
+                audioControl.classList.add('playing');
+                audioPlaying = true;
+            }
+            document.removeEventListener('click', initAudio);
+        }, { once: true });
+
+        // ════════════════════════════════════════════════════════════
+        // SISTEMA DE CONFIRMACIÓN CON GOOGLE SHEETS
+        // ════════════════════════════════════════════════════════════
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/exec';
+        // NOTA: Debes reemplazar la URL arriba con tu Google Apps Script Web App URL
+
+        // Abrir modal de confirmación
+        function mostrarConfirmacion() {
+            const modal = document.createElement('div');
+            modal.id = 'confirmacion-modal';
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
+            modal.innerHTML = `
+                <div style="background:white;border-radius:24px;padding:32px;max-width:500px;width:100%;box-shadow:0 20px 60px rgba(236,72,153,0.3);max-height:90vh;overflow-y:auto;">
+                    <div style="text-align:center;margin-bottom:24px;">
+                        <div style="font-size:64px;margin-bottom:16px;">💌</div>
+                        <h2 style="font-size:1.8rem;color:#ec4899;font-weight:bold;margin-bottom:8px;">Confirma tu Asistencia</h2>
+                        <p style="color:#6b7280;font-size:0.9rem;">Por favor llena tus datos</p>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:16px;">
+                        <div>
+                            <label style="display:block;color:#374151;font-weight:600;margin-bottom:6px;font-size:0.85rem;">Nombre Completo *</label>
+                            <input type="text" id="conf-nombre" placeholder="Tu nombre completo" 
+                                   style="width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:1rem;transition:all 0.3s;"
+                                   onfocus="this.style.borderColor='#ec4899'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+
+                        <div>
+                            <label style="display:block;color:#374151;font-weight:600;margin-bottom:6px;font-size:0.85rem;">Email *</label>
+                            <input type="email" id="conf-email" placeholder="tu@email.com" 
+                                   style="width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:1rem;transition:all 0.3s;"
+                                   onfocus="this.style.borderColor='#ec4899'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+
+                        <div>
+                            <label style="display:block;color:#374151;font-weight:600;margin-bottom:6px;font-size:0.85rem;">Teléfono *</label>
+                            <input type="tel" id="conf-telefono" placeholder="10 dígitos" 
+                                   style="width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:1rem;transition:all 0.3s;"
+                                   onfocus="this.style.borderColor='#ec4899'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+
+                        <div>
+                            <label style="display:block;color:#374151;font-weight:600;margin-bottom:6px;font-size:0.85rem;">¿Cuántas personas asistirán? *</label>
+                            <input type="number" id="conf-pases" placeholder="Ej: 2" min="1" max="10" value="1"
+                                   style="width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:1rem;transition:all 0.3s;"
+                                   onfocus="this.style.borderColor='#ec4899'" onblur="this.style.borderColor='#e5e7eb'">
+                        </div>
+
+                        <div>
+                            <label style="display:block;color:#374151;font-weight:600;margin-bottom:6px;font-size:0.85rem;">Mensaje (opcional)</label>
+                            <textarea id="conf-mensaje" placeholder="Escribe un mensaje para Saraí..." rows="3"
+                                      style="width:100%;padding:12px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:1rem;resize:vertical;transition:all 0.3s;"
+                                      onfocus="this.style.borderColor='#ec4899'" onblur="this.style.borderColor='#e5e7eb'"></textarea>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:12px;margin-top:24px;">
+                        <button onclick="confirmarAsistencia()" 
+                                style="flex:1;background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:white;font-weight:bold;padding:14px;border-radius:12px;font-size:1rem;cursor:pointer;transition:all 0.3s;"
+                                onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                            ✅ Confirmar
+                        </button>
+                        <button onclick="document.getElementById('confirmacion-modal').remove()" 
+                                style="flex:1;background:#f3f4f6;border:none;color:#374151;font-weight:bold;padding:14px;border-radius:12px;cursor:pointer;transition:all 0.3s;"
+                                onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+                            Cancelar
+                        </button>
+                    </div>
+
+                    <div style="margin-top:20px;text-align:center;">
+                        <button onclick="verRegistros()" style="color:#ec4899;text-decoration:underline;background:none;border:none;cursor:pointer;font-size:0.9rem;">
+                            Ver todos los registros
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Confirmar asistencia
+        async function confirmarAsistencia() {
+            const nombre = document.getElementById('conf-nombre').value.trim();
+            const email = document.getElementById('conf-email').value.trim();
+            const telefono = document.getElementById('conf-telefono').value.trim();
+            const pases = document.getElementById('conf-pases').value;
+            const mensaje = document.getElementById('conf-mensaje').value.trim();
+
+            // Validaciones
+            if (!nombre || !email || !telefono || !pases) {
+                alert('⚠️ Por favor completa todos los campos obligatorios (*)');
+                return;
+            }
+
+            if (!email.includes('@')) {
+                alert('⚠️ Por favor ingresa un email válido');
+                return;
+            }
+
+            if (telefono.length < 10) {
+                alert('⚠️ Por favor ingresa un teléfono válido (10 dígitos)');
+                return;
+            }
+
+            // Mostrar loading
+            const btnConfirmar = event.target;
+            const btnTextoOriginal = btnConfirmar.innerHTML;
+            btnConfirmar.innerHTML = '⏳ Enviando...';
+            btnConfirmar.disabled = true;
+
+            try {
+                // Enviar a Google Sheets
+                const formData = new FormData();
+                formData.append('action', 'add');
+                formData.append('nombre', nombre);
+                formData.append('email', email);
+                formData.append('telefono', telefono);
+                formData.append('pases', pases);
+                formData.append('mensaje', mensaje);
+                formData.append('fecha', new Date().toLocaleString('es-MX'));
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Cerrar modal
+                    document.getElementById('confirmacion-modal').remove();
+
+                    // Mostrar mensaje de éxito
+                    const successMsg = document.createElement('div');
+                    successMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#10b981,#059669);color:white;padding:32px;border-radius:20px;z-index:10001;box-shadow:0 20px 60px rgba(16,185,129,0.4);text-align:center;max-width:90%;animation:fadeIn 0.3s ease;';
+                    successMsg.innerHTML = `
+                        <div style="font-size:64px;margin-bottom:16px;">✅</div>
+                        <h3 style="font-size:1.5rem;font-weight:bold;margin-bottom:8px;">¡Confirmación Exitosa!</h3>
+                        <p style="font-size:1rem;opacity:0.9;margin-bottom:4px;">Gracias por confirmar, ${nombre.split(' ')[0]}</p>
+                        <p style="font-size:0.85rem;opacity:0.8;">Se ha enviado un PDF de confirmación a ${email}</p>
+                    `;
+                    document.body.appendChild(successMsg);
+                    setTimeout(() => successMsg.remove(), 5000);
+                } else {
+                    throw new Error(result.message || 'Error al guardar');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Ocurrió un error al confirmar. Por favor intenta de nuevo.');
+                btnConfirmar.innerHTML = btnTextoOriginal;
+                btnConfirmar.disabled = false;
+            }
+        }
+
+        // Ver registros
+        async function verRegistros() {
+            const modal = document.createElement('div');
+            modal.id = 'registros-modal';
+            modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
+            modal.innerHTML = `
+                <div style="background:white;border-radius:24px;padding:32px;max-width:900px;width:100%;box-shadow:0 20px 60px rgba(236,72,153,0.3);max-height:90vh;overflow-y:auto;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                        <h2 style="font-size:1.8rem;color:#ec4899;font-weight:bold;">📋 Registros de Asistencia</h2>
+                        <button onclick="document.getElementById('registros-modal').remove()" 
+                                style="font-size:2rem;color:#9ca3af;background:none;border:none;cursor:pointer;width:40px;height:40px;border-radius:50%;transition:all 0.3s;"
+                                onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">×</button>
+                    </div>
+
+                    <div style="margin-bottom:20px;">
+                        <input type="text" id="buscar-registro" placeholder="🔍 Buscar por nombre, email o teléfono..." 
+                               style="width:100%;padding:14px 20px;border:2px solid #e5e7eb;border-radius:12px;font-size:1rem;"
+                               oninput="filtrarRegistros(this.value)"
+                               onfocus="this.style.borderColor='#ec4899'" onblur="this.style.borderColor='#e5e7eb'">
+                    </div>
+
+                    <div id="lista-registros" style="display:flex;flex-direction:column;gap:12px;">
+                        <div style="text-align:center;padding:40px;color:#9ca3af;">
+                            <div style="font-size:48px;margin-bottom:16px;">⏳</div>
+                            <p>Cargando registros...</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:20px;padding-top:20px;border-top:2px solid #f3f4f6;display:flex;gap:12px;">
+                        <button onclick="cargarRegistros()" 
+                                style="flex:1;background:linear-gradient(135deg,#ec4899,#be185d);border:none;color:white;font-weight:bold;padding:12px;border-radius:12px;cursor:pointer;">
+                            🔄 Recargar
+                        </button>
+                        <button onclick="document.getElementById('registros-modal').remove()" 
+                                style="flex:1;background:#f3f4f6;border:none;color:#374151;font-weight:bold;padding:12px;border-radius:12px;cursor:pointer;">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            cargarRegistros();
+        }
+
+        // Cargar registros desde Google Sheets
+        let todosLosRegistros = [];
+        async function cargarRegistros() {
+            const listaDiv = document.getElementById('lista-registros');
+            listaDiv.innerHTML = '<div style="text-align:center;padding:40px;color:#9ca3af;"><div style="font-size:48px;margin-bottom:16px;">⏳</div><p>Cargando registros...</p></div>';
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL + '?action=get');
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    todosLosRegistros = result.data;
+                    mostrarRegistros(todosLosRegistros);
+                } else {
+                    throw new Error('No se pudieron cargar los registros');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                listaDiv.innerHTML = `
+                    <div style="text-align:center;padding:40px;color:#ef4444;">
+                        <div style="font-size:48px;margin-bottom:16px;">❌</div>
+                        <p>Error al cargar registros</p>
+                        <button onclick="cargarRegistros()" style="margin-top:16px;background:#ec4899;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">
+                            Reintentar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Mostrar registros en la lista
+        function mostrarRegistros(registros) {
+            const listaDiv = document.getElementById('lista-registros');
+            
+            if (registros.length === 0) {
+                listaDiv.innerHTML = '<div style="text-align:center;padding:40px;color:#9ca3af;"><div style="font-size:48px;margin-bottom:16px;">📭</div><p>No hay registros aún</p></div>';
+                return;
+            }
+
+            const totalPases = registros.reduce((sum, reg) => sum + parseInt(reg.pases || 1), 0);
+
+            listaDiv.innerHTML = `
+                <div style="background:linear-gradient(135deg,#fdf2f8,#fae8ff);padding:16px;border-radius:12px;margin-bottom:16px;text-align:center;">
+                    <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:16px;">
+                        <div>
+                            <div style="font-size:2rem;font-weight:bold;color:#ec4899;">${registros.length}</div>
+                            <div style="font-size:0.85rem;color:#9333ea;">Confirmaciones</div>
+                        </div>
+                        <div>
+                            <div style="font-size:2rem;font-weight:bold;color:#9333ea;">${totalPases}</div>
+                            <div style="font-size:0.85rem;color:#9333ea;">Total de Personas</div>
+                        </div>
+                    </div>
+                </div>
+                ${registros.map((reg, idx) => `
+                    <div style="background:#f9fafb;border:2px solid #e5e7eb;border-radius:12px;padding:16px;transition:all 0.3s;cursor:pointer;"
+                         onmouseover="this.style.borderColor='#ec4899';this.style.background='#fef2f8'"
+                         onmouseout="this.style.borderColor='#e5e7eb';this.style.background='#f9fafb'">
+                        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
+                            <div style="flex:1;">
+                                <div style="font-weight:bold;color:#1f2937;font-size:1.1rem;margin-bottom:4px;">
+                                    ${reg.nombre}
+                                </div>
+                                <div style="font-size:0.85rem;color:#6b7280;display:flex;flex-direction:column;gap:2px;">
+                                    <span>📧 ${reg.email}</span>
+                                    <span>📱 ${reg.telefono}</span>
+                                    <span style="color:#ec4899;font-weight:600;">👥 ${reg.pases} ${reg.pases == 1 ? 'persona' : 'personas'}</span>
+                                </div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="background:#10b981;color:white;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:bold;margin-bottom:4px;">
+                                    ✓ Confirmado
+                                </div>
+                                <div style="font-size:0.7rem;color:#9ca3af;">${reg.fecha || 'N/A'}</div>
+                            </div>
+                        </div>
+                        ${reg.mensaje ? `<div style="background:white;padding:12px;border-radius:8px;margin-top:8px;border-left:3px solid #ec4899;"><span style="font-size:0.8rem;color:#6b7280;font-style:italic;">"${reg.mensaje}"</span></div>` : ''}
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        // Filtrar registros
+        function filtrarRegistros(busqueda) {
+            const busquedaLower = busqueda.toLowerCase();
+            const filtrados = todosLosRegistros.filter(reg => 
+                reg.nombre.toLowerCase().includes(busquedaLower) ||
+                reg.email.toLowerCase().includes(busquedaLower) ||
+                reg.telefono.includes(busquedaLower)
+            );
+            mostrarRegistros(filtrados);
         }
 
         window.onload = function() {
